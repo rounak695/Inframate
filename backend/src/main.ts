@@ -24,9 +24,13 @@ async function bootstrap() {
     );
 
     // Enable CORS
+    const corsOrigin = configService.get('CORS_ORIGIN');
+    console.log(`🔧 CORS Configured Origin: ${corsOrigin}`);
+
     app.enableCors({
-        origin: configService.get('CORS_ORIGIN') || 'http://localhost:3001',
+        origin: corsOrigin || 'http://localhost:3001',
         credentials: true,
+        methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     });
 
     // Set global API prefix
