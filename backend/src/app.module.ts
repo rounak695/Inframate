@@ -9,6 +9,7 @@ import { CampusModule } from './modules/campus/campus.module';
 import { IssuesModule } from './modules/issues/issues.module';
 import { SlaModule } from './modules/sla/sla.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+import { AppController } from './app.controller';
 
 /**
  * App Module
@@ -42,6 +43,7 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
         IssuesModule,
         SlaModule,
     ],
+    controllers: [AppController],
     providers: [
         // Global exception filter
         {
