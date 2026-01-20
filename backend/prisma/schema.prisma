@@ -1,0 +1,282 @@
+// Inframate Database Schema
+// Multi-tenant campus infrastructure management platform
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// CORE ENTITIES
+// ============================================
+
+model Campus {
+  id               String   @id @default(uuid())
+  name             String
+  subdomain        String   @unique
+  logoUrl          String?
+  settings         Json     @default("{}")
+  isActive         Boolean  @default(true)
+  subscriptionTier String   @default("FREE")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Relations
+  users        User[]
+  issues       Issue[]
+  categories   Category[]
+  notifications Notification[]
+  auditLogs    AuditLog[]
+
+  @@index([isActive])
+  @@map("campuses")
+}
+
+model User {
+  id            String   @id @default(uuid())
+  campusId      String
+  email         String   @unique
+  passwordHash  String
+  firstName     String
+  lastName      String
+  role          Role
+  phoneNumber   String?
+  department    String?
+  studentId     String?
+  isActive      Boolean  @default(true)
+  emailVerified Boolean  @default(false)
+  lastLoginAt   DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  campus          Campus         @relation(fields: [campusId], references: [id], onDelete: Cascade)
+  createdIssues   Issue[]        @relation("IssueCreator")
+  assignedIssues  Issue[]        @relation("IssueAssignee")
+  assignments     Assignment[]   @relation("AssignedUser")
+  assignedBy      Assignment[]   @relation("AssignedByUser")
+  comments        Comment[]
+  notifications   Notification[]
+  auditLogs       AuditLog[]
+
+  @@index([campusId, role])
+  @@index([campusId, isActive])
+  @@map("users")
+}
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  STAFF
+  STUDENT
+}
+
+model Category {
+  id          String   @id @default(uuid())
+  campusId    String
+  name        String
+  description String?
+  icon        String?
+  color       String?
+  slaConfig   Json // Priority-based SLA configuration
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  campus Campus  @relation(fields: [campusId], references: [id], onDelete: Cascade)
+  issues Issue[]
+
+  @@unique([campusId, name])
+  @@index([campusId, isActive])
+  @@map("categories")
+}
+
+model Issue {
+  id                      String       @id @default(uuid())
+  campusId                String
+  issueNumber             Int // Human-readable number (per campus)
+  categoryId              String
+  createdBy               String
+  assignedTo              String?
+  title                   String
+  description             String       @db.Text
+  location                String?
+  status                  IssueStatus  @default(SUBMITTED)
+  priority                Priority     @default(MEDIUM)
+  
+  // SLA fields
+  slaResponseDeadline     DateTime
+  slaResolutionDeadline   DateTime
+  slaResponseBreached     Boolean      @default(false)
+  slaResolutionBreached   Boolean      @default(false)
+  slaResponseBreachedAt   DateTime?
+  slaResolutionBreachedAt DateTime?
+  
+  // Lifecycle timestamps
+  assignedAt              DateTime?
+  firstResponseAt         DateTime?
+  resolvedAt              DateTime?
+  verifiedAt              DateTime?
+  closedAt                DateTime?
+  
+  resolutionNotes         String?      @db.Text
+  satisfactionRating      Int?         // 1-5 stars
+  reopenCount             Int          @default(0)
+  
+  deletedAt               DateTime?
+  createdAt               DateTime     @default(now())
+  updatedAt               DateTime     @updatedAt
+
+  // Relations
+  campus       Campus       @relation(fields: [campusId], references: [id], onDelete: Cascade)
+  category     Category     @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  creator      User         @relation("IssueCreator", fields: [createdBy], references: [id], onDelete: Restrict)
+  assignee     User?        @relation("IssueAssignee", fields: [assignedTo], references: [id], onDelete: SetNull)
+  assignments  Assignment[]
+  comments     Comment[]
+  attachments  Attachment[]
+
+  @@index([campusId, status, createdAt(sort: Desc)])
+  @@index([assignedTo, status])
+  @@index([campusId, slaResolutionDeadline])
+  @@map("issues")
+}
+
+enum IssueStatus {
+  SUBMITTED
+  ASSIGNED
+  IN_PROGRESS
+  RESOLVED
+  VERIFIED
+  CLOSED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+model Assignment {
+  id           String    @id @default(uuid())
+  issueId      String
+  assignedTo   String
+  assignedBy   String
+  assignedAt   DateTime  @default(now())
+  unassignedAt DateTime?
+  notes        String?   @db.Text
+
+  // Relations
+  issue       Issue @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  assignedUser User  @relation("AssignedUser", fields: [assignedTo], references: [id], onDelete: Restrict)
+  assignedByUser User @relation("AssignedByUser", fields: [assignedBy], references: [id], onDelete: Restrict)
+
+  @@index([issueId, assignedAt(sort: Desc)])
+  @@index([assignedTo, assignedAt(sort: Desc)])
+  @@map("assignments")
+}
+
+model Comment {
+  id         String    @id @default(uuid())
+  issueId    String
+  userId     String
+  content    String    @db.Text
+  isInternal Boolean   @default(false)
+  deletedAt  DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  // Relations
+  issue Issue @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([issueId, createdAt])
+  @@map("comments")
+}
+
+model Attachment {
+  id           String    @id @default(uuid())
+  issueId      String
+  uploadedBy   String
+  fileName     String
+  fileUrl      String
+  fileSize     BigInt
+  mimeType     String
+  thumbnailUrl String?
+  deletedAt    DateTime?
+  createdAt    DateTime  @default(now())
+
+  // Relations
+  issue Issue @relation(fields: [issueId], references: [id], onDelete: Cascade)
+
+  @@index([issueId])
+  @@map("attachments")
+}
+
+model Notification {
+  id          String             @id @default(uuid())
+  campusId    String
+  userId      String
+  type        NotificationType
+  channel     NotificationChannel
+  subject     String
+  body        String             @db.Text
+  metadata    Json               @default("{}")
+  sentAt      DateTime?
+  deliveredAt DateTime?
+  failedAt    DateTime?
+  errorMessage String?           @db.Text
+  createdAt   DateTime           @default(now())
+
+  // Relations
+  campus Campus @relation(fields: [campusId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, sentAt(sort: Desc)])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+enum NotificationType {
+  ISSUE_CREATED
+  ISSUE_ASSIGNED
+  ISSUE_UPDATED
+  SLA_BREACH
+  ISSUE_RESOLVED
+  DAILY_DIGEST
+}
+
+enum NotificationChannel {
+  EMAIL
+  SMS
+  PUSH
+  IN_APP
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  campusId   String
+  userId     String?
+  action     String
+  entityType String
+  entityId   String
+  changes    Json
+  ipAddress  String?
+  userAgent  String?  @db.Text
+  timestamp  DateTime @default(now())
+
+  // Relations
+  campus Campus @relation(fields: [campusId], references: [id], onDelete: Cascade)
+  user   User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([campusId, timestamp(sort: Desc)])
+  @@index([entityType, entityId, timestamp(sort: Desc)])
+  @@index([userId, timestamp(sort: Desc)])
+  @@map("audit_logs")
+}
