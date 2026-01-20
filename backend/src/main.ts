@@ -24,11 +24,19 @@ async function bootstrap() {
     );
 
     // Enable CORS
+    // Enable CORS
     const corsOrigin = configService.get('CORS_ORIGIN');
     console.log(`🔧 CORS Configured Origin: ${corsOrigin}`);
 
+    const allowedOrigins = [
+        'http://localhost:3000',
+        'http://localhost:3001',
+        'https://inframate-frontend.vercel.app',
+        corsOrigin,
+    ].filter((origin) => origin);
+
     app.enableCors({
-        origin: corsOrigin || 'http://localhost:3001',
+        origin: allowedOrigins,
         credentials: true,
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     });
