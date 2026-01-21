@@ -24,6 +24,7 @@ import {
 import { format } from 'date-fns';
 import { AlertCircle, CheckCircle, Clock, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { OverviewCharts } from '@/components/admin/overview-charts';
 
 /**
  * Admin Dashboard
@@ -148,6 +149,9 @@ function AdminDashboard() {
                 </Card>
             </div>
 
+            {/* Analytics Charts */}
+            <OverviewCharts issues={issues} />
+
             <div className="bg-card rounded-lg border shadow-sm">
                 <div className="p-4 border-b flex items-center justify-between">
                     <h3 className="font-semibold">Recent Issues</h3>
@@ -229,7 +233,7 @@ function AdminDashboard() {
                                                 defaultValue={issue.assignee?.id || "unassigned"}
                                                 onValueChange={(val) => handleAssign(issue.id, val)}
                                             >
-                                                <SelectTrigger className={issue.assignee ? "" : "text-muted-foreground"} className="h-8">
+                                                <SelectTrigger className={`h-8 ${!issue.assignee ? "text-muted-foreground" : ""}`}>
                                                     <SelectValue placeholder="Unassigned" />
                                                 </SelectTrigger>
                                                 <SelectContent>

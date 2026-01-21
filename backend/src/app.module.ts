@@ -7,6 +7,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { CampusModule } from './modules/campus/campus.module';
 import { IssuesModule } from './modules/issues/issues.module';
+import { CategoriesModule } from './modules/categories/categories.module';
 import { SlaModule } from './modules/sla/sla.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { AppController } from './app.controller';
@@ -41,6 +42,7 @@ import { AppController } from './app.controller';
         UsersModule,
         CampusModule,
         IssuesModule,
+        CategoriesModule,
         SlaModule,
     ],
     controllers: [AppController],
