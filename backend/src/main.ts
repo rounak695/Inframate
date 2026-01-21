@@ -95,13 +95,11 @@ async function bootstrap() {
     }
 
     // Start server
-    const port = configService.get('PORT') || 3000;
-    await app.listen(port);
+    const port = process.env.PORT || 3000;
+    await app.listen(port, '0.0.0.0'); // Bind to 0.0.0.0 for Render
 
-    console.log('');
-    console.log('🚀 Inframate Backend Server Started');
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log(`📡 Server running on: http://localhost:${port}/${apiPrefix}`);
+    console.log(`\n🚀 Inframate Backend Server Started`);
+    console.log(`📡 Backend API: http://localhost:${port}/${apiPrefix}`);
     console.log(`🔐 Environment: ${nodeEnv}`);
     console.log(`🛡️  Security: Helmet enabled`);
     console.log(`📊 Database: Connected`);
