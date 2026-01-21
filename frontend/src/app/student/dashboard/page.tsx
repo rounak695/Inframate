@@ -22,7 +22,7 @@ function StudentDashboard() {
 
     const loadIssues = async () => {
         try {
-            const data = await issuesApi.getMyIssues();
+            const data = await issuesApi.getMyCreated();
             setIssues(data);
         } catch (error) {
             console.error('Failed to load issues:', error);
