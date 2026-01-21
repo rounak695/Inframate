@@ -4,8 +4,9 @@ import { NotificationsController } from './notifications.controller';
 import { EmailService } from './email.service';
 
 @Module({
+    imports: [PrismaModule],
     controllers: [NotificationsController],
     providers: [NotificationsService, EmailService],
-    exports: [NotificationsService],
+    exports: [NotificationsService, EmailService], // Export EmailService for InvitationsModule
 })
 export class NotificationsModule { }
