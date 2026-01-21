@@ -124,4 +124,4 @@ function IssueDetailPage({ params }: { params: { id: string } }) {
     );
 }
 
-export default withAuth(IssueDetailPage, ['STUDENT', 'STAFF', 'ADMIN']);
+export default withAuth(IssueDetailPage as any, ['STUDENT', 'STAFF', 'ADMIN']);
