@@ -44,75 +44,45 @@ export function Hero() {
                         </motion.div>
                     </div>
 
+
                     {/* Visual Content */}
-                    <div className="lg:w-1/2 relative">
+                    <div className="lg:w-1/2 relative perspective-1000">
                         <motion.div
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 0.6, delay: 0.2 }}
+                            initial={{ opacity: 0, rotateX: 20, rotateY: -20, scale: 0.9 }}
+                            animate={{ opacity: 1, rotateX: 0, rotateY: 0, scale: 1 }}
+                            transition={{ duration: 0.8, ease: "easeOut" }}
                             className="relative z-10"
+                            style={{ transformStyle: 'preserve-3d' }}
                         >
-                            <div className="rounded-2xl overflow-hidden shadow-2xl border border-gray-100 bg-white">
-                                {/* Mockup Header */}
-                                <div className="h-8 bg-gray-50 border-b border-gray-100 flex items-center px-4 gap-2">
-                                    <div className="w-3 h-3 rounded-full bg-red-400"></div>
-                                    <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
-                                    <div className="w-3 h-3 rounded-full bg-green-400"></div>
-                                </div>
-                                {/* Mockup content (Placeholder for Dashboard) */}
-                                <div className="aspect-[4/3] bg-gray-50 relative group overflow-hidden">
-                                    <div className="absolute inset-0 bg-gradient-to-tr from-amplitude-blue/5 to-purple-500/5"></div>
-                                    <div className="p-8">
-                                        <div className="flex gap-4 mb-8">
-                                            <div className="w-1/3 h-32 rounded-xl bg-white shadow-sm p-4 space-y-2">
-                                                <div className="w-8 h-8 rounded-lg bg-blue-100"></div>
-                                                <div className="w-16 h-2 bg-gray-100 rounded"></div>
-                                                <div className="w-24 h-6 bg-gray-200 rounded"></div>
-                                            </div>
-                                            <div className="w-1/3 h-32 rounded-xl bg-white shadow-sm p-4 space-y-2">
-                                                <div className="w-8 h-8 rounded-lg bg-green-100"></div>
-                                                <div className="w-16 h-2 bg-gray-100 rounded"></div>
-                                                <div className="w-24 h-6 bg-gray-200 rounded"></div>
-                                            </div>
-                                            <div className="w-1/3 h-32 rounded-xl bg-white shadow-sm p-4 space-y-2">
-                                                <div className="w-8 h-8 rounded-lg bg-purple-100"></div>
-                                                <div className="w-16 h-2 bg-gray-100 rounded"></div>
-                                                <div className="w-24 h-6 bg-gray-200 rounded"></div>
-                                            </div>
-                                        </div>
-                                        <div className="h-48 rounded-xl bg-white shadow-sm p-6 border border-gray-100">
-                                            <div className="flex justify-between items-center mb-6">
-                                                <div className="w-32 h-4 bg-gray-100 rounded"></div>
-                                                <div className="w-20 h-4 bg-blue-50 text-blue-500 text-xs flex items-center justify-center rounded-full font-medium">Live Data</div>
-                                            </div>
-                                            <div className="flex items-end gap-2 h-24">
-                                                {[40, 70, 50, 90, 60, 80, 50, 70, 60, 90].map((h, i) => (
-                                                    <div key={i} className="flex-1 bg-amplitude-blue/80 rounded-t-sm hover:bg-amplitude-blue transition-colors" style={{ height: `${h}%` }}></div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                            <div className="relative rounded-xl overflow-hidden shadow-2xl border border-gray-200/50 bg-white/50 backdrop-blur-xl">
+                                <img
+                                    src="/hero-dashboard.png"
+                                    alt="Inframate Dashboard Interface"
+                                    className="w-full h-auto object-cover rounded-xl"
+                                />
+
+                                {/* Glass Overlay Reflection */}
+                                <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent pointer-events-none"></div>
                             </div>
 
                             {/* Floating Badge */}
                             <motion.div
-                                className="absolute -bottom-6 -left-6 bg-white p-4 rounded-xl shadow-xl border border-gray-100 flex items-center gap-4 hidden md:flex"
+                                className="absolute -bottom-10 -left-10 bg-white/90 backdrop-blur-md p-5 rounded-2xl shadow-xl border border-white/20 flex items-center gap-4 hidden md:flex"
                                 animate={{ y: [0, -10, 0] }}
-                                transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+                                transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }}
                             >
-                                <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center text-green-600 font-bold">
+                                <div className="w-14 h-14 rounded-full bg-green-50 flex items-center justify-center text-green-600 font-bold text-xl border border-green-100">
                                     98%
                                 </div>
                                 <div>
-                                    <p className="text-sm font-bold text-amplitude-navy">Resolution Rate</p>
-                                    <p className="text-xs text-amplitude-gray-text">Top tier performance</p>
+                                    <p className="text-base font-bold text-amplitude-navy">Resolution Rate</p>
+                                    <p className="text-sm text-amplitude-gray-text">Top tier performance</p>
                                 </div>
                             </motion.div>
                         </motion.div>
 
                         {/* Background Decor */}
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[140%] bg-gradient-to-tr from-blue-50 to-purple-50 rounded-full blur-3xl -z-10 opacity-60"></div>
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[160%] h-[160%] bg-gradient-to-tr from-blue-100/50 via-purple-100/30 to-blue-50/50 rounded-full blur-3xl -z-10 opacity-70"></div>
                     </div>
                 </div>
             </div>

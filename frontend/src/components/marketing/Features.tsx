@@ -78,22 +78,33 @@ export function Features() {
 
                             {/* Visual Content */}
                             <div className="lg:w-1/2 w-full">
-                                <div className={`aspect-[4/3] rounded-2xl overflow-hidden shadow-xl border border-gray-100 ${feature.imagePlaceholder} relative group`}>
-                                    {/* Abstract UI Representation */}
-                                    <div className="absolute inset-8 bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col gap-4 transition-transform duration-700 group-hover:scale-105">
-                                        <div className="flex gap-4 items-center">
-                                            <div className="w-12 h-12 rounded-full bg-gray-100"></div>
-                                            <div className="space-y-2">
-                                                <div className="w-32 h-4 bg-gray-100 rounded"></div>
-                                                <div className="w-20 h-3 bg-gray-50 rounded"></div>
-                                            </div>
+                                <div className={`rounded-2xl overflow-hidden shadow-2xl border border-gray-200/50 bg-white relative group transition-transform duration-500 hover:-translate-y-2`}>
+                                    {index === 0 && (
+                                        <div className="bg-blue-50/50 p-8 flex items-center justify-center min-h-[400px]">
+                                            <img src="/feature-reporting.png" alt="Reporting UI" className="w-[80%] drop-shadow-2xl rounded-3xl" />
                                         </div>
-                                        <div className="h-32 bg-gray-50 rounded-lg w-full"></div>
-                                        <div className="flex gap-2">
-                                            <div className="w-full h-10 bg-amplitude-blue/10 rounded-lg"></div>
-                                            <div className="w-10 h-10 bg-gray-100 rounded-lg"></div>
+                                    )}
+                                    {index === 1 && (
+                                        <div className="bg-white p-8 flex items-center justify-center min-h-[400px]">
+                                            <img src="/feature-analytics.png" alt="Analytics UI" className="w-full drop-shadow-xl" />
                                         </div>
-                                    </div>
+                                    )}
+                                    {index === 2 && (
+                                        <div className="bg-gradient-to-br from-gray-50 to-blue-50 p-12 flex flex-col gap-4 min-h-[400px] justify-center">
+                                            {[1, 2, 3].map((n) => (
+                                                <div key={n} className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4 animate-slide-up" style={{ animationDelay: `${n * 150}ms` }}>
+                                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${n === 1 ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
+                                                        {n === 1 ? '!' : '✓'}
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <div className="h-2 w-24 bg-gray-100 rounded mb-2"></div>
+                                                        <div className="h-2 w-16 bg-gray-50 rounded"></div>
+                                                    </div>
+                                                    <div className="text-xs text-gray-400">Just now</div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </motion.div>

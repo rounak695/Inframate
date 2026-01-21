@@ -18,7 +18,7 @@ export function Navbar() {
     }, []);
 
     return (
-        <nav className={`fixed top-0 z-50 w-full transition-all duration-300 border-b ${scrolled ? 'bg-white/95 backdrop-blur-md border-gray-200 py-3' : 'bg-transparent border-transparent py-5'
+        <nav className={`fixed top-0 z-50 w-full transition-all duration-300 border-b ${scrolled ? 'bg-white/90 backdrop-blur-xl border-gray-200/50 py-3 shadow-sm' : 'bg-transparent border-transparent py-5'
             }`}>
             <div className="container mx-auto px-6 flex items-center justify-between">
                 {/* Logo */}
@@ -26,29 +26,30 @@ export function Navbar() {
                     <div className="w-8 h-8 rounded bg-amplitude-blue flex items-center justify-center text-white">
                         <Building2 className="w-5 h-5" />
                     </div>
-                    <span className="text-xl font-bold text-amplitude-navy tracking-tight">Inframate</span>
+                    <span className="text-xl font-bold text-amplitude-navy tracking-tight group-hover:text-amplitude-blue transition-colors">Inframate</span>
                 </Link>
 
                 {/* Desktop Nav */}
-                <div className="hidden md:flex items-center gap-8">
+                <div className="hidden md:flex items-center gap-10">
                     {['Product', 'Solutions', 'Customers', 'Pricing'].map((item) => (
                         <Link
                             key={item}
                             href={`#${item.toLowerCase()}`}
-                            className="text-sm font-medium text-amplitude-gray-text hover:text-amplitude-blue transition-colors"
+                            className="text-[15px] font-medium text-amplitude-gray-text hover:text-amplitude-blue transition-colors relative group"
                         >
                             {item}
+                            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-amplitude-blue transition-all group-hover:w-full"></span>
                         </Link>
                     ))}
                 </div>
 
                 {/* Right Actions */}
-                <div className="hidden md:flex items-center gap-4">
-                    <Link href="/login" className="text-sm font-medium text-amplitude-navy hover:text-amplitude-blue transition-colors">
+                <div className="hidden md:flex items-center gap-6">
+                    <Link href="/login" className="text-[15px] font-semibold text-amplitude-navy hover:text-amplitude-blue transition-colors">
                         Log In
                     </Link>
                     <Link href="/login">
-                        <Button className="bg-amplitude-blue hover:bg-amplitude-blue-hover text-white rounded-full px-6 transition-transform hover:scale-105">
+                        <Button className="bg-amplitude-blue hover:bg-amplitude-blue-hover text-white font-semibold rounded-full px-6 transition-all hover:scale-105 hover:shadow-lg hover:shadow-blue-500/30">
                             Get Started
                         </Button>
                     </Link>
@@ -65,7 +66,7 @@ export function Navbar() {
 
             {/* Mobile Menu */}
             {mobileOpen && (
-                <div className="absolute top-full left-0 w-full bg-white border-b border-gray-200 p-6 flex flex-col gap-4 shadow-xl md:hidden">
+                <div className="absolute top-full left-0 w-full bg-white border-b border-gray-200 p-6 flex flex-col gap-4 shadow-xl md:hidden animate-slide-up">
                     {['Product', 'Solutions', 'Customers', 'Pricing'].map((item) => (
                         <Link
                             key={item}
