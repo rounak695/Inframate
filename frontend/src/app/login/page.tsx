@@ -21,7 +21,7 @@ export default function LoginPage() {
         setError('');
 
         try {
-            const response = await authApi.login(formData);
+            const response = await (authApi.login as any)(formData);
             localStorage.setItem('token', response.accessToken);
             localStorage.setItem('user', JSON.stringify(response.user));
 
