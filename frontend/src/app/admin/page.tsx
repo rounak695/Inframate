@@ -3,41 +3,93 @@
 import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/dashboard-layout';
 import { withAuth } from '@/components/with-auth';
-import { issuesApi } from '@/lib/api-client';
-import { IssueCard } from '@/components/issue-card';
+import { issuesApi, usersApi } from '@/lib/api-client';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow
+} from "@/components/ui/table";
+import { Badge } from '@/components/ui/badge';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue
+} from "@/components/ui/select";
+import { format } from 'date-fns';
+import { AlertCircle, CheckCircle, Clock, UserPlus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 /**
  * Admin Dashboard
  * 
- * Shows all campus issues with filtering
+ * Shows interactive issues table with assignment & status controls
  */
 function AdminDashboard() {
     const [issues, setIssues] = useState<any[]>([]);
+    const [staffList, setStaffList] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-    const [filter, setFilter] = useState('all');
+    const [statusFilter, setStatusFilter] = useState('ALL');
 
     useEffect(() => {
-        loadIssues();
+        loadData();
     }, []);
 
-    const loadIssues = async () => {
+    const loadData = async () => {
         try {
-            const data = await issuesApi.getAll();
-            setIssues(data);
+            const [issuesData, usersData] = await Promise.all([
+                issuesApi.getAll(),
+                usersApi.getAll()
+            ]);
+            setIssues(issuesData);
+            setStaffList(usersData.filter((u: any) => u.role === 'STAFF')); // Filter only staff
         } catch (error) {
-            console.error('Failed to load issues:', error);
+            console.error('Failed to load data:', error);
         } finally {
             setLoading(false);
         }
     };
 
+    const handleAssign = async (issueId: string, staffId: string) => {
+        try {
+            // Optimistic update
+            setIssues(prev => prev.map(i =>
+                i.id === issueId ? { ...i, assignee: staffList.find(s => s.id === staffId), status: 'ASSIGNED' } : i
+            ));
+
+            await issuesApi.assign(issueId, { assigneeId: staffId });
+        } catch (error) {
+            console.error('Failed to assign:', error);
+            loadData(); // Revert on failure
+        }
+    };
+
+    const handleStatusUpdate = async (issueId: string, newStatus: string) => {
+        try {
+            setIssues(prev => prev.map(i =>
+                i.id === issueId ? { ...i, status: newStatus } : i
+            ));
+
+            await issuesApi.updateStatus(issueId, { status: newStatus });
+        } catch (error) {
+            console.error('Failed to update status:', error);
+            loadData();
+        }
+    };
+
+    // Filter logic
     const filteredIssues = issues.filter(issue => {
-        if (filter === 'all') return true;
-        if (filter === 'open') return ['SUBMITTED', 'ASSIGNED', 'IN_PROGRESS'].includes(issue.status);
-        if (filter === 'breached') return issue.slaResolutionBreached;
-        return issue.status === filter.toUpperCase();
+        if (statusFilter === 'ALL') return true;
+        if (statusFilter === 'OPEN') return ['SUBMITTED', 'ASSIGNED', 'IN_PROGRESS'].includes(issue.status);
+        return issue.status === statusFilter;
     });
 
+    // Stats
     const stats = {
         total: issues.length,
         open: issues.filter(i => ['SUBMITTED', 'ASSIGNED', 'IN_PROGRESS'].includes(i.status)).length,
@@ -45,61 +97,161 @@ function AdminDashboard() {
         resolved: issues.filter(i => i.status === 'RESOLVED').length,
     };
 
+    const statusColors: Record<string, "default" | "secondary" | "destructive" | "outline" | "success" | "warning"> = {
+        SUBMITTED: 'secondary',
+        ASSIGNED: 'warning',
+        IN_PROGRESS: 'default', // Map to default/primary
+        RESOLVED: 'success',
+        VERIFIED: 'success',
+        CLOSED: 'outline',
+    };
+
     return (
         <DashboardLayout title="Admin Dashboard">
-            {/* Stats Row */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                <div className="card">
-                    <p className="text-sm text-gray-600">Total Issues</p>
-                    <p className="text-3xl font-bold text-gray-900 mt-1">{stats.total}</p>
-                </div>
-                <div className="card">
-                    <p className="text-sm text-gray-600">Open Issues</p>
-                    <p className="text-3xl font-bold text-blue-600 mt-1">{stats.open}</p>
-                </div>
-                <div className="card">
-                    <p className="text-sm text-gray-600">SLA Breached</p>
-                    <p className="text-3xl font-bold text-red-600 mt-1">{stats.breached}</p>
-                </div>
-                <div className="card">
-                    <p className="text-sm text-gray-600">Resolved</p>
-                    <p className="text-3xl font-bold text-green-600 mt-1">{stats.resolved}</p>
-                </div>
+            {/* Stats Overview */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Total Issues</CardTitle>
+                        <Clock className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{stats.total}</div>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Open Issues</CardTitle>
+                        <Clock className="h-4 w-4 text-blue-500" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold text-blue-600">{stats.open}</div>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">SLA Breached</CardTitle>
+                        <AlertCircle className="h-4 w-4 text-destructive" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold text-destructive">{stats.breached}</div>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Resolved</CardTitle>
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold text-green-600">{stats.resolved}</div>
+                    </CardContent>
+                </Card>
             </div>
 
-            {/* Filters */}
-            <div className="mb-6 flex gap-2 flex-wrap">
-                {['all', 'open', 'submitted', 'assigned', 'in_progress', 'breached', 'resolved'].map((f) => (
-                    <button
-                        key={f}
-                        onClick={() => setFilter(f)}
-                        className={`px-4 py-2 rounded-lg font-medium transition-colors ${filter === f
-                                ? 'bg-primary-600 text-white'
-                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                            }`}
-                    >
-                        {f.replace('_', ' ').toUpperCase()}
-                    </button>
-                ))}
-            </div>
+            <div className="bg-card rounded-lg border shadow-sm">
+                <div className="p-4 border-b flex items-center justify-between">
+                    <h3 className="font-semibold">Recent Issues</h3>
+                    <div className="w-[200px]">
+                        <Select value={statusFilter} onValueChange={setStatusFilter}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Filter by status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="ALL">All Issues</SelectItem>
+                                <SelectItem value="OPEN">Open Issues</SelectItem>
+                                <SelectItem value="SUBMITTED">Submitted</SelectItem>
+                                <SelectItem value="ASSIGNED">Assigned</SelectItem>
+                                <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+                                <SelectItem value="RESOLVED">Resolved</SelectItem>
+                                <SelectItem value="CLOSED">Closed</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </div>
 
-            {/* Issues List */}
-            {loading ? (
-                <div className="text-center py-12">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4" />
-                    <p className="text-gray-600">Loading issues...</p>
-                </div>
-            ) : filteredIssues.length === 0 ? (
-                <div className="card text-center py-12">
-                    <p className="text-gray-600 text-lg">No issues found</p>
-                </div>
-            ) : (
-                <div className="space-y-4">
-                    {filteredIssues.map((issue) => (
-                        <IssueCard key={issue.id} issue={issue} isAdmin />
-                    ))}
-                </div>
-            )}
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead className="w-[100px]">ID</TableHead>
+                            <TableHead>Issue Details</TableHead>
+                            <TableHead>Location</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead>Assigned To</TableHead>
+                            <TableHead className="text-right">Created</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {loading ? (
+                            <TableRow>
+                                <TableCell colSpan={6} className="h-24 text-center">
+                                    Loading...
+                                </TableCell>
+                            </TableRow>
+                        ) : filteredIssues.length === 0 ? (
+                            <TableRow>
+                                <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                                    No issues found matching filters.
+                                </TableCell>
+                            </TableRow>
+                        ) : (
+                            filteredIssues.map((issue) => (
+                                <TableRow key={issue.id}>
+                                    <TableCell className="font-mono text-xs">#{issue.issueNumber}</TableCell>
+                                    <TableCell>
+                                        <div className="font-medium line-clamp-1">{issue.title}</div>
+                                        <div className="text-xs text-muted-foreground capitalize">
+                                            {issue.priority.toLowerCase()} Priority • {issue.category?.name}
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className="text-sm">{issue.location || '-'}</TableCell>
+                                    <TableCell>
+                                        <div className="w-[140px]">
+                                            <Select
+                                                defaultValue={issue.status}
+                                                onValueChange={(val) => handleStatusUpdate(issue.id, val)}
+                                            >
+                                                <SelectTrigger className="h-8">
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="SUBMITTED">Submitted</SelectItem>
+                                                    <SelectItem value="ASSIGNED">Assigned</SelectItem>
+                                                    <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+                                                    <SelectItem value="RESOLVED">Resolved</SelectItem>
+                                                    <SelectItem value="CLOSED">Closed</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="w-[180px]">
+                                            <Select
+                                                defaultValue={issue.assignee?.id || "unassigned"}
+                                                onValueChange={(val) => handleAssign(issue.id, val)}
+                                            >
+                                                <SelectTrigger className={issue.assignee ? "" : "text-muted-foreground"} className="h-8">
+                                                    <SelectValue placeholder="Unassigned" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="unassigned">Unassigned</SelectItem>
+                                                    {staffList.map(staff => (
+                                                        <SelectItem key={staff.id} value={staff.id}>
+                                                            {staff.firstName} {staff.lastName}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className="text-right text-xs text-muted-foreground">
+                                        {format(new Date(issue.createdAt), 'MMM d')}
+                                    </TableCell>
+                                </TableRow>
+                            ))
+                        )}
+                    </TableBody>
+                </Table>
+            </div>
         </DashboardLayout>
     );
 }

@@ -171,3 +171,10 @@ export const campusApi = {
         return data;
     },
 };
+
+export const categoriesApi = {
+    getAll: async () => {
+        const { data } = await apiClient.get('/categories');
+        return data;
+    },
+};

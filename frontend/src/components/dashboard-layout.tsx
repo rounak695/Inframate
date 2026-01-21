@@ -1,7 +1,11 @@
 'use client';
 
-import Link from 'next/link';
 import { useAuth } from '@/contexts/auth-context';
+import { Sidebar } from '@/components/layout/sidebar';
+import { BottomNav } from '@/components/layout/bottom-nav';
+import { navigationConfig } from '@/config/nav';
+import { Button } from '@/components/ui/button';
+import { LogOut } from 'lucide-react';
 
 /**
  * Dashboard Layout
@@ -17,87 +21,37 @@ interface DashboardLayoutProps {
 export function DashboardLayout({ children, title }: DashboardLayoutProps) {
     const { user, logout } = useAuth();
 
-    const navigation = {
-        STUDENT: [
-            { name: 'My Issues', href: '/student', icon: '📋' },
-            { name: 'Create Issue', href: '/student/create', icon: '➕' },
-        ],
-        STAFF: [
-            { name: 'Assigned to Me', href: '/staff', icon: '📋' },
-            { name: 'All Issues', href: '/staff/issues', icon: '📊' },
-        ],
-        ADMIN: [
-            { name: 'Dashboard', href: '/admin', icon: '📊' },
-            { name: 'All Issues', href: '/admin/issues', icon: '📋' },
-            { name: 'Users', href: '/admin/users', icon: '👥' },
-            { name: 'Categories', href: '/admin/categories', icon: '🏷️' },
-        ],
-        SUPER_ADMIN: [
-            { name: 'All Campuses', href: '/admin/campuses', icon: '🏫' },
-            { name: 'All Issues', href: '/admin/issues', icon: '📋' },
-        ],
-    };
-
-    const navItems = user ? navigation[user.role] || [] : [];
+    // Safety check for user role to avoid crashes if role is undefined or invalid
+    const navItems = user && user.role ? navigationConfig[user.role] || [] : [];
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            {/* Top Navigation */}
-            <nav className="bg-white border-b border-gray-200">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between h-16 items-center">
-                        <div className="flex items-center">
-                            <h1 className="text-xl font-bold text-gray-900">Inframate</h1>
-                            {user?.campus && (
-                                <span className="ml-4 text-sm text-gray-500">
-                                    {user.campus.name}
-                                </span>
-                            )}
-                        </div>
+        <div className="min-h-screen bg-muted/40 flex">
+            {/* Desktop Sidebar */}
+            <Sidebar items={navItems} user={user} onLogout={logout} />
 
-                        <div className="flex items-center space-x-4">
-                            <div className="text-sm">
-                                <p className="font-medium text-gray-900">
-                                    {user?.firstName} {user?.lastName}
-                                </p>
-                                <p className="text-gray-500">{user?.role}</p>
-                            </div>
-                            <button
-                                onClick={logout}
-                                className="btn btn-secondary text-sm"
-                            >
-                                Logout
-                            </button>
-                        </div>
+            {/* Main Content Area */}
+            <div className="flex-1 flex flex-col min-h-screen mb-16 md:mb-0">
+                {/* Mobile Header */}
+                <header className="flex h-14 items-center gap-4 border-b bg-background px-6 md:hidden">
+                    <h1 className="text-lg font-semibold text-foreground">Inframate</h1>
+                    <div className="ml-auto flex items-center gap-2">
+                        <Button variant="ghost" size="icon" onClick={logout}>
+                            <LogOut className="h-4 w-4" />
+                            <span className="sr-only">Logout</span>
+                        </Button>
                     </div>
-                </div>
-            </nav>
+                </header>
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="flex gap-8">
-                    {/* Sidebar Navigation */}
-                    <aside className="w-64 flex-shrink-0">
-                        <nav className="space-y-1">
-                            {navItems.map((item) => (
-                                <Link
-                                    key={item.href}
-                                    href={item.href}
-                                    className="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-                                >
-                                    <span className="mr-3 text-lg">{item.icon}</span>
-                                    <span className="font-medium">{item.name}</span>
-                                </Link>
-                            ))}
-                        </nav>
-                    </aside>
-
-                    {/* Main Content */}
-                    <main className="flex-1">
-                        <h1 className="text-2xl font-bold text-gray-900 mb-6">{title}</h1>
-                        {children}
-                    </main>
-                </div>
+                <main className="flex-1 p-6 md:p-8 pt-6">
+                    <div className="flex items-center justify-between mb-6">
+                        <h2 className="text-3xl font-bold tracking-tight text-foreground">{title}</h2>
+                    </div>
+                    {children}
+                </main>
             </div>
+
+            {/* Mobile Bottom Navigation */}
+            <BottomNav items={navItems} />
         </div>
     );
 }

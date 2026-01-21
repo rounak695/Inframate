@@ -85,12 +85,7 @@ async function main() {
 
     // 3. Create categories with SLA configs
     const electrical = await prisma.category.upsert({
-        where: {
-            campusId_name: {
-                campusId: campus.id,
-                name: 'Electrical',
-            },
-        },
+        where: { campusId_name: { campusId: campus.id, name: 'Electrical' } },
         update: {},
         create: {
             name: 'Electrical',
@@ -98,22 +93,12 @@ async function main() {
             icon: '⚡',
             color: '#FCD34D',
             campusId: campus.id,
-            slaConfig: {
-                CRITICAL: { responseMinutes: 60, resolutionHours: 4 },
-                HIGH: { responseMinutes: 240, resolutionHours: 24 },
-                MEDIUM: { responseMinutes: 1440, resolutionHours: 72 },
-                LOW: { responseMinutes: 2880, resolutionHours: 168 },
-            },
+            slaConfig: { /* Defaults */ },
         },
     });
 
     const plumbing = await prisma.category.upsert({
-        where: {
-            campusId_name: {
-                campusId: campus.id,
-                name: 'Plumbing',
-            },
-        },
+        where: { campusId_name: { campusId: campus.id, name: 'Plumbing' } },
         update: {},
         create: {
             name: 'Plumbing',
@@ -121,16 +106,89 @@ async function main() {
             icon: '🚰',
             color: '#60A5FA',
             campusId: campus.id,
-            slaConfig: {
-                CRITICAL: { responseMinutes: 60, resolutionHours: 4 },
-                HIGH: { responseMinutes: 240, resolutionHours: 24 },
-                MEDIUM: { responseMinutes: 1440, resolutionHours: 72 },
-                LOW: { responseMinutes: 2880, resolutionHours: 168 },
-            },
+            slaConfig: { /* Defaults */ },
         },
     });
 
-    console.log(`✅ Created categories: Electrical, Plumbing`);
+    const wifi = await prisma.category.upsert({
+        where: { campusId_name: { campusId: campus.id, name: 'Internet/Wi-Fi' } },
+        update: {},
+        create: {
+            name: 'Internet/Wi-Fi',
+            description: 'Network connectivity issues',
+            icon: '📶',
+            color: '#818CF8',
+            campusId: campus.id,
+            slaConfig: { /* Defaults */ },
+        },
+    });
+
+    const ac = await prisma.category.upsert({
+        where: { campusId_name: { campusId: campus.id, name: 'Air Conditioning' } },
+        update: {},
+        create: {
+            name: 'Air Conditioning',
+            description: 'HVAC and cooling issues',
+            icon: '❄️',
+            color: '#22D3EE',
+            campusId: campus.id,
+            slaConfig: { /* Defaults */ },
+        },
+    });
+
+    const furniture = await prisma.category.upsert({
+        where: { campusId_name: { campusId: campus.id, name: 'Furniture' } },
+        update: {},
+        create: {
+            name: 'Furniture',
+            description: 'Desks, chairs, and other furniture',
+            icon: '',
+            color: '#FB923C',
+            campusId: campus.id,
+            slaConfig: { /* Defaults */ },
+        },
+    });
+
+    const civil = await prisma.category.upsert({
+        where: { campusId_name: { campusId: campus.id, name: 'Civil/Damage' } },
+        update: {},
+        create: {
+            name: 'Civil/Damage',
+            description: 'Structural damage, walls, doors',
+            icon: '🏗️',
+            color: '#A8A29E',
+            campusId: campus.id,
+            slaConfig: { /* Defaults */ },
+        },
+    });
+
+    const it = await prisma.category.upsert({
+        where: { campusId_name: { campusId: campus.id, name: 'Computers/IT' } },
+        update: {},
+        create: {
+            name: 'Computers/IT',
+            description: 'Computer hardware and software',
+            icon: '💻',
+            color: '#C084FC',
+            campusId: campus.id,
+            slaConfig: { /* Defaults */ },
+        },
+    });
+
+    const other = await prisma.category.upsert({
+        where: { campusId_name: { campusId: campus.id, name: 'Other' } },
+        update: {},
+        create: {
+            name: 'Other',
+            description: 'Miscellaneous issues',
+            icon: '❓',
+            color: '#9CA3AF',
+            campusId: campus.id,
+            slaConfig: { /* Defaults */ },
+        },
+    });
+
+    console.log(`✅ Created categories: Electrical, Plumbing, Wi-Fi, AC, Furniture, Civil, IT, Other`);
 
     // 4. Create sample issues
     const now = new Date();
