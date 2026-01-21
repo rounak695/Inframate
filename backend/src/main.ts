@@ -34,7 +34,7 @@ async function bootstrap() {
     }));
 
     // Security: Trust proxy for proper IP detection behind reverse proxies
-    app.set('trust proxy', 1);
+    (app as any).set('trust proxy', 1);
 
     // Enable global validation with strict mode
     app.useGlobalPipes(

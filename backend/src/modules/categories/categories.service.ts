@@ -24,7 +24,6 @@ export class CategoriesService {
                         name: category.name,
                         icon: category.icon,
                         color: category.color,
-                        slaHours: category.slaHours,
                         campusId,
                     },
                 }),

@@ -175,7 +175,6 @@ export class MetricsService {
         const slaCompliant = await this.prisma.issue.count({
             where: {
                 status: 'RESOLVED',
-                slaBreached: false,
             },
         });
 

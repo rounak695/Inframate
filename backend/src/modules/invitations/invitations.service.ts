@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from '../../database/prisma.service';
 import { EmailService } from '../notifications/email.service';
 import { InviteUserDto } from './dto/invite-user.dto';
 import * as crypto from 'crypto';
