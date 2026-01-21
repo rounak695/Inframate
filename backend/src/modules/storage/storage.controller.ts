@@ -1,7 +1,7 @@
 import { Controller, Post, Body, UseGuards, UnauthorizedException } from '@nestjs/common';
 import { StorageService } from './storage.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { User } from '../../common/decorators/user.decorator';
+import { CurrentUser } from '../../common/decorators/user.decorator';
 
 @Controller('storage')
 @UseGuards(JwtAuthGuard)
@@ -10,7 +10,7 @@ export class StorageController {
 
     @Post('upload-url')
     async getUploadUrl(
-        @User() user: any,
+        @CurrentUser() user: any,
         @Body() body: { filename: string; contentType: string },
     ) {
         // Optional: Add logic to restrict file types or sizes if needed
