@@ -18,32 +18,11 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
 interface OverviewChartsProps {
-    issues: any[];
+    statusData: any[];
+    categoryData: any[];
 }
 
-export function OverviewCharts({ issues }: OverviewChartsProps) {
-    // Aggregate Status Data
-    const statusCounts = issues.reduce((acc, issue) => {
-        acc[issue.status] = (acc[issue.status] || 0) + 1;
-        return acc;
-    }, {});
-
-    const statusData = Object.keys(statusCounts).map(status => ({
-        name: status.replace('_', ' '),
-        value: statusCounts[status]
-    }));
-
-    // Aggregate Category Data
-    const categoryCounts = issues.reduce((acc, issue) => {
-        const catName = issue.category?.name || 'Uncategorized';
-        acc[catName] = (acc[catName] || 0) + 1;
-        return acc;
-    }, {});
-
-    const categoryData = Object.keys(categoryCounts).map(name => ({
-        name,
-        count: categoryCounts[name]
-    })).sort((a, b) => b.count - a.count); // Sort desc
+export function OverviewCharts({ statusData, categoryData }: OverviewChartsProps) {
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">

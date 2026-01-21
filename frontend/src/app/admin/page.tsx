@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/dashboard-layout';
 import { withAuth } from '@/components/with-auth';
-import { issuesApi, usersApi } from '@/lib/api-client';
+import { issuesApi, usersApi, analyticsApi } from '@/lib/api-client';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import {
     Table,
@@ -36,19 +36,34 @@ function AdminDashboard() {
     const [staffList, setStaffList] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [statusFilter, setStatusFilter] = useState('ALL');
+    const [daysFilter, setDaysFilter] = useState('7');
+
+    // Analytics State
+    const [overview, setOverview] = useState<any>(null);
+    const [metrics, setMetrics] = useState<any>(null);
+    const [staffPerf, setStaffPerf] = useState<any[]>([]);
 
     useEffect(() => {
         loadData();
-    }, []);
+    }, [daysFilter]); // Reload when days filter changes
 
     const loadData = async () => {
+        setLoading(true);
         try {
-            const [issuesData, usersData] = await Promise.all([
+            const days = parseInt(daysFilter);
+            const [issuesData, usersData, overviewData, metricsData, staffData] = await Promise.all([
                 issuesApi.getAll(),
-                usersApi.getAll()
+                usersApi.getAll(),
+                analyticsApi.getOverview(days),
+                analyticsApi.getMetrics(days),
+                analyticsApi.getStaffPerformance(days)
             ]);
+
             setIssues(issuesData);
-            setStaffList(usersData.filter((u: any) => u.role === 'STAFF')); // Filter only staff
+            setStaffList(usersData.filter((u: any) => u.role === 'STAFF'));
+            setOverview(overviewData);
+            setMetrics(metricsData);
+            setStaffPerf(staffData);
         } catch (error) {
             console.error('Failed to load data:', error);
         } finally {
@@ -90,13 +105,7 @@ function AdminDashboard() {
         return issue.status === statusFilter;
     });
 
-    // Stats
-    const stats = {
-        total: issues.length,
-        open: issues.filter(i => ['SUBMITTED', 'ASSIGNED', 'IN_PROGRESS'].includes(i.status)).length,
-        breached: issues.filter(i => i.slaResolutionBreached).length,
-        resolved: issues.filter(i => i.status === 'RESOLVED').length,
-    };
+
 
     const statusColors: Record<string, "default" | "secondary" | "destructive" | "outline" | "success" | "warning"> = {
         SUBMITTED: 'secondary',
@@ -107,8 +116,32 @@ function AdminDashboard() {
         CLOSED: 'outline',
     };
 
+    // Prepare chart data
+    const statusData = metrics?.byStatus?.map((s: any) => ({
+        name: s.status.replace('_', ' '),
+        value: s.count
+    })) || [];
+
+    const categoryData = metrics?.byCategory?.map((c: any) => ({
+        name: c.name,
+        count: c.count
+    })) || [];
+
     return (
         <DashboardLayout title="Admin Dashboard">
+            <div className="flex justify-end mb-4">
+                <Select value={daysFilter} onValueChange={setDaysFilter}>
+                    <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Select period" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="7">Last 7 Days</SelectItem>
+                        <SelectItem value="30">Last 30 Days</SelectItem>
+                        <SelectItem value="90">Last 90 Days</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
+
             {/* Stats Overview */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
                 <Card>
@@ -117,40 +150,79 @@ function AdminDashboard() {
                         <Clock className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{stats.total}</div>
+                        <div className="text-2xl font-bold">{overview?.totalIssues || 0}</div>
+                        <p className="text-xs text-muted-foreground">in selected period</p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Open Issues</CardTitle>
-                        <Clock className="h-4 w-4 text-blue-500" />
+                        <CardTitle className="text-sm font-medium">Avg Resolution</CardTitle>
+                        <CheckCircle className="h-4 w-4 text-blue-500" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold text-blue-600">{stats.open}</div>
+                        <div className="text-2xl font-bold text-blue-600">{overview?.avgResolutionTime || 0}h</div>
+                        <p className="text-xs text-muted-foreground">average time</p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">SLA Breached</CardTitle>
+                        <CardTitle className="text-sm font-medium">SLA Breaches</CardTitle>
                         <AlertCircle className="h-4 w-4 text-destructive" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold text-destructive">{stats.breached}</div>
+                        <div className="text-2xl font-bold text-destructive">{overview?.activeBreaches || 0}</div>
+                        <p className="text-xs text-muted-foreground">current active</p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Resolved</CardTitle>
+                        <CardTitle className="text-sm font-medium">Resolution Rate</CardTitle>
                         <CheckCircle className="h-4 w-4 text-green-500" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold text-green-600">{stats.resolved}</div>
+                        <div className="text-2xl font-bold text-green-600">{Math.round(overview?.resolutionRate || 0)}%</div>
+                        <p className="text-xs text-muted-foreground">completion rate</p>
                     </CardContent>
                 </Card>
             </div>
 
             {/* Analytics Charts */}
-            <OverviewCharts issues={issues} />
+            <OverviewCharts statusData={statusData} categoryData={categoryData} />
+
+            {/* Staff Performance */}
+            <div className="grid grid-cols-1 mb-8">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Top Staff Performance</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Staff Member</TableHead>
+                                    <TableHead>Issues Resolved</TableHead>
+                                    <TableHead>Avg Resolution Time</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {staffPerf.length === 0 ? (
+                                    <TableRow>
+                                        <TableCell colSpan={3} className="text-center text-muted-foreground">No data available</TableCell>
+                                    </TableRow>
+                                ) : (
+                                    staffPerf.map((staff, i) => (
+                                        <TableRow key={i}>
+                                            <TableCell className="font-medium">{staff.firstName} {staff.lastName}</TableCell>
+                                            <TableCell>{staff.resolved_count}</TableCell>
+                                            <TableCell>{Math.round(staff.avg_resolution_hours * 10) / 10} hours</TableCell>
+                                        </TableRow>
+                                    ))
+                                )}
+                            </TableBody>
+                        </Table>
+                    </CardContent>
+                </Card>
+            </div>
 
             <div className="bg-card rounded-lg border shadow-sm">
                 <div className="p-4 border-b flex items-center justify-between">

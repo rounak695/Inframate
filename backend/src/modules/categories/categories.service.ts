@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
+import { BulkCreateCategoriesDto } from './dto/bulk-create-categories.dto';
 
 @Injectable()
 export class CategoriesService {
@@ -11,5 +12,28 @@ export class CategoriesService {
                 campus: true,
             },
         });
+    }
+
+    async bulkCreate(bulkCreateDto: BulkCreateCategoriesDto) {
+        const { campusId, categories } = bulkCreateDto;
+
+        const createdCategories = await this.prisma.$transaction(
+            categories.map((category) =>
+                this.prisma.category.create({
+                    data: {
+                        name: category.name,
+                        icon: category.icon,
+                        color: category.color,
+                        slaHours: category.slaHours,
+                        campusId,
+                    },
+                }),
+            ),
+        );
+
+        return {
+            message: `Successfully created ${createdCategories.length} categories`,
+            categories: createdCategories,
+        };
     }
 }

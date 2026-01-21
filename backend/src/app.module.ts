@@ -8,6 +8,11 @@ import { UsersModule } from './modules/users/users.module';
 import { CampusModule } from './modules/campus/campus.module';
 import { IssuesModule } from './modules/issues/issues.module';
 import { CategoriesModule } from './modules/categories/categories.module';
+import { StorageModule } from './modules/storage/storage.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
+import { AnalyticsModule } from './modules/analytics/analytics.module';
+import { AuditModule } from './modules/audit/audit.module';
+import { InvitationsModule } from './modules/invitations/invitations.module';
 import { SlaModule } from './modules/sla/sla.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { AppController } from './app.controller';
@@ -43,6 +48,11 @@ import { AppController } from './app.controller';
         CampusModule,
         IssuesModule,
         CategoriesModule,
+        StorageModule,
+        NotificationsModule,
+        AnalyticsModule,
+        AuditModule,
+        InvitationsModule,
         SlaModule,
     ],
     controllers: [AppController],

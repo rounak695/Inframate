@@ -8,7 +8,9 @@ import { PrismaService } from '../../database/prisma.service';
 import { CreateIssueDto } from './dto/create-issue.dto';
 import { UpdateIssueDto } from './dto/update-issue.dto';
 import { AssignIssueDto } from './dto/assign-issue.dto';
-import { IssueStatus } from '@prisma/client';
+import { IssueStatus, NotificationType, NotificationChannel } from '@prisma/client';
+import { NotificationsService } from '../notifications/notifications.service';
+import { AuditService } from '../audit/audit.service';
 
 /**
  * Issues Service
@@ -17,7 +19,11 @@ import { IssueStatus } from '@prisma/client';
  */
 @Injectable()
 export class IssuesService {
-    constructor(private prisma: PrismaService) { }
+    constructor(
+        private prisma: PrismaService,
+        private notificationsService: NotificationsService,
+        private auditService: AuditService,
+    ) { }
 
     /**
      * Create new issue with SLA calculation
@@ -76,6 +82,15 @@ export class IssuesService {
                 status: IssueStatus.SUBMITTED,
                 slaResponseDeadline: responseDeadline,
                 slaResolutionDeadline: resolutionDeadline,
+                attachments: {
+                    create: dto.attachments?.map((url) => ({
+                        fileName: url.split('/').pop() || 'unknown',
+                        fileUrl: url,
+                        fileSize: 0, // Frontend should ideally send this
+                        mimeType: 'application/octet-stream', // Placeholder
+                        uploadedBy: userId,
+                    })),
+                },
             },
             include: {
                 category: {
@@ -92,6 +107,7 @@ export class IssuesService {
                         email: true,
                     },
                 },
+                attachments: true,
             },
         });
 
@@ -281,6 +297,32 @@ export class IssuesService {
             },
         });
 
+        // Notify Assignee
+        if (dto.assignedTo) {
+            await this.notificationsService.create({
+                campusId,
+                userId: dto.assignedTo,
+                type: NotificationType.ISSUE_ASSIGNED,
+                subject: `New Assignment: ${issue.title}`,
+                body: `You have been assigned to issue #${issue.issueNumber}: ${issue.title}. Priority: ${issue.priority}`,
+                metadata: { issueId: id },
+            });
+        }
+
+        // Audit Log
+        await this.auditService.log({
+            userId: assignedById,
+            campusId,
+            action: 'ISSUE_ASSIGNED',
+            entityType: 'Issue',
+            entityId: id,
+            changes: {
+                assignedTo: dto.assignedTo,
+                assignedBy: assignedById,
+                status: 'ASSIGNED',
+            },
+        });
+
         return updated;
     }
 
@@ -332,6 +374,32 @@ export class IssuesService {
         const updated = await this.prisma.issue.update({
             where: { id },
             data: updateData,
+        });
+
+        // Notify Creator on Resolution
+        if (status === IssueStatus.RESOLVED) {
+            await this.notificationsService.create({
+                campusId,
+                userId: issue.createdBy,
+                type: NotificationType.ISSUE_RESOLVED,
+                subject: `Issue Resolved: ${issue.title}`,
+                body: `Your issue #${issue.issueNumber} has been resolved. Notes: ${resolutionNotes}`,
+                metadata: { issueId: id },
+            });
+        }
+
+        // Audit Log
+        await this.auditService.log({
+            userId,
+            campusId,
+            action: 'ISSUE_STATUS_CHANGED',
+            entityType: 'Issue',
+            entityId: id,
+            changes: {
+                previousStatus: issue.status,
+                newStatus: status,
+                resolutionNotes: resolutionNotes || null,
+            },
         });
 
         return updated;

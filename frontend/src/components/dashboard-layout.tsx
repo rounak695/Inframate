@@ -6,6 +6,7 @@ import { BottomNav } from '@/components/layout/bottom-nav';
 import { navigationConfig } from '@/config/nav';
 import { Button } from '@/components/ui/button';
 import { LogOut } from 'lucide-react';
+import { NotificationsDropdown } from '@/components/notifications-dropdown';
 
 /**
  * Dashboard Layout
@@ -45,6 +46,9 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
                 <main className="flex-1 p-6 md:p-8 pt-6">
                     <div className="flex items-center justify-between mb-6">
                         <h2 className="text-3xl font-bold tracking-tight text-foreground">{title}</h2>
+                        <div className="hidden md:block">
+                            <NotificationsDropdown />
+                        </div>
                     </div>
                     {children}
                 </main>

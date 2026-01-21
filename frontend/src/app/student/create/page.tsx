@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/dashboard-layout';
 import { withAuth } from '@/components/with-auth';
+import { FileUploader } from '@/components/file-uploader';
 import { issuesApi, categoriesApi } from '@/lib/api-client';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -38,11 +39,18 @@ function CreateIssuePage() {
     const [error, setError] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const [categories, setCategories] = useState<any[]>([]);
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<{
+        title: string;
+        description: string;
+        location: string;
+        priority: string;
+        attachments: string[];
+    }>({
         title: '',
         description: '',
         location: '',
         priority: 'MEDIUM',
+        attachments: [],
     });
 
     useEffect(() => {
@@ -220,6 +228,14 @@ function CreateIssuePage() {
                                         </div>
                                     ))}
                                 </div>
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label>Photos (Optional)</Label>
+                                <FileUploader
+                                    onUploadComplete={(urls) => setFormData(prev => ({ ...prev, attachments: urls }))}
+                                    maxFiles={3}
+                                />
                             </div>
                         </CardContent>
                         <CardFooter className="flex justify-end gap-2 pt-2">

@@ -146,6 +146,11 @@ export const issuesApi = {
         const { data } = await apiClient.patch(`/issues/${id}/status`, statusData);
         return data;
     },
+
+    getUploadUrl: async (filename: string, contentType: string) => {
+        const { data } = await apiClient.post('/storage/upload-url', { filename, contentType });
+        return data;
+    },
 };
 
 export const usersApi = {
@@ -175,6 +180,56 @@ export const campusApi = {
 export const categoriesApi = {
     getAll: async () => {
         const { data } = await apiClient.get('/categories');
+        return data;
+    },
+};
+
+export const notificationsApi = {
+    getAll: async () => {
+        const { data } = await apiClient.get('/notifications');
+        return data;
+    },
+    markAsRead: async (id: string) => {
+        const { data } = await apiClient.patch(`/notifications/${id}/read`, {});
+        return data;
+    },
+};
+
+export const analyticsApi = {
+    getOverview: async (days: number = 7) => {
+        const { data } = await apiClient.get(`/analytics/overview?days=${days}`);
+        return data;
+    },
+    getMetrics: async (days: number = 7) => {
+        const { data } = await apiClient.get(`/analytics/metrics?days=${days}`);
+        return data;
+    },
+    getStaffPerformance: async (days: number = 30) => {
+        const { data } = await apiClient.get(`/analytics/staff?days=${days}`);
+        return data;
+    },
+};
+
+export const auditApi = {
+    getAll: async (params: {
+        page?: number;
+        limit?: number;
+        action?: string;
+        entityType?: string;
+        userId?: string;
+        startDate?: string;
+        endDate?: string;
+    } = {}) => {
+        const queryParams = new URLSearchParams();
+        if (params.page) queryParams.set('page', params.page.toString());
+        if (params.limit) queryParams.set('limit', params.limit.toString());
+        if (params.action) queryParams.set('action', params.action);
+        if (params.entityType) queryParams.set('entityType', params.entityType);
+        if (params.userId) queryParams.set('userId', params.userId);
+        if (params.startDate) queryParams.set('startDate', params.startDate);
+        if (params.endDate) queryParams.set('endDate', params.endDate);
+
+        const { data } = await apiClient.get(`/audit?${queryParams.toString()}`);
         return data;
     },
 };

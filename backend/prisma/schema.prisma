@@ -26,11 +26,12 @@ model Campus {
   updatedAt        DateTime @updatedAt
 
   // Relations
-  users        User[]
-  issues       Issue[]
-  categories   Category[]
+  users         User[]
+  issues        Issue[]
+  categories    Category[]
   notifications Notification[]
-  auditLogs    AuditLog[]
+  auditLogs     AuditLog[]
+  invitations   Invitation[]
 
   @@index([isActive])
   @@map("campuses")
@@ -84,6 +85,7 @@ model Category {
   color       String?
   slaConfig   Json // Priority-based SLA configuration
   isActive    Boolean  @default(true)
+  lastLoginAt DateTime?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -280,3 +282,23 @@ model AuditLog {
   @@index([userId, timestamp(sort: Desc)])
   @@map("audit_logs")
 }
+
+model Invitation {
+  id         String    @id @default(uuid())
+  email      String    @unique
+  firstName  String
+  lastName   String
+  role       Role
+  campusId   String
+  department String?
+  token      String    @unique
+  expiresAt  DateTime
+  acceptedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  campus Campus @relation(fields: [campusId], references: [id])
+
+  @@map("invitations")
+}
+

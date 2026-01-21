@@ -8,6 +8,7 @@ import {
     Query,
     UseGuards,
 } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
 import { IssuesService } from './issues.service';
 import { CreateIssueDto } from './dto/create-issue.dto';
 import { UpdateIssueDto } from './dto/update-issue.dto';
@@ -24,6 +25,8 @@ import { CurrentUser, CampusId, UserId } from '../../common/decorators/user.deco
  * Handles HTTP requests for issue management.
  * All routes protected by JWT authentication and RBAC.
  */
+@ApiTags('Issues')
+@ApiBearerAuth()
 @Controller('issues')
 @UseGuards(JwtAuthGuard, RolesGuard, CampusAccessGuard)
 export class IssuesController {
@@ -33,6 +36,10 @@ export class IssuesController {
      * POST /issues
      * Create new issue (any authenticated user)
      */
+    @ApiOperation({ summary: 'Create issue', description: 'Create a new infrastructure issue' })
+    @ApiResponse({ status: 201, description: 'Issue created successfully' })
+    @ApiResponse({ status: 400, description: 'Invalid input data' })
+    @ApiBody({ type: CreateIssueDto })
     @Post()
     @Roles('STUDENT', 'STAFF', 'ADMIN')
     create(
