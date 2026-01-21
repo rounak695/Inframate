@@ -62,6 +62,21 @@ module.exports = {
                     DEFAULT: "hsl(var(--info))",
                     foreground: "hsl(var(--info-foreground))",
                 },
+                // Amplitude-inspired tokens
+                amplitude: {
+                    navy: {
+                        DEFAULT: "#0a0b2d",
+                        900: "#050617",
+                    },
+                    blue: {
+                        DEFAULT: "#2172FF",
+                        hover: "#1a60db",
+                    },
+                    gray: {
+                        DEFAULT: "#F8F9FA",
+                        text: "#525C76",
+                    }
+                },
             },
             borderRadius: {
                 lg: "var(--radius)",
