@@ -102,7 +102,7 @@ export class InvitationsService {
         const user = await this.prisma.user.create({
             data: {
                 email: invitation.email,
-                password: hashedPassword,
+                passwordHash: hashedPassword,
                 firstName: invitation.firstName,
                 lastName: invitation.lastName,
                 role: invitation.role,

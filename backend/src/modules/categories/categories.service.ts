@@ -24,6 +24,7 @@ export class CategoriesService {
                         name: category.name,
                         icon: category.icon,
                         color: category.color,
+                        slaConfig: {}, // Default empty SLA config
                         campusId,
                     },
                 }),
