@@ -9,12 +9,12 @@ export class NotificationsController {
     constructor(private readonly notificationsService: NotificationsService) { }
 
     @Get()
-    getMyNotifications(@GetUser() user: any) {
+    getMyNotifications(@CurrentUser() user: any) {
         return this.notificationsService.getMyNotifications(user.id);
     }
 
     @Patch(':id/read')
-    markAsRead(@Param('id') id: string, @GetUser() user: any) {
+    markAsRead(@Param('id') id: string, @CurrentUser() user: any) {
         return this.notificationsService.markAsRead(id, user.id);
     }
 }
